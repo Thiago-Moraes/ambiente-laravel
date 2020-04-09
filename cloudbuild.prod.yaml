@@ -38,4 +38,4 @@ steps:
         - '-c'
         - |
             sed 's#img-app-Deployment#gcr.io/$PROJECT_ID/ambiente-laravel:$SHORT_SHA#g' k8s/app/deployment.yaml > k8s/app/deployment-new.yaml;
-            cat /8s/app/deployment-new.yaml
+            cat k8s/app/deployment-new.yaml
