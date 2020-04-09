@@ -32,7 +32,7 @@ steps:
     args: ['push', 'gcr.io/$PROJECT_ID/ambiente-laravel:$SHORT_SHA']
 
 -   id: "Ajustando arquivo deployment - k8s"
-    name: 'gcr.io/cloud-builders/gcloud'
+    name: 'gcr.io/cloud-builders/kubectl'
     entrypoint: '/bin/sh'
     args: 
         - '-c'
