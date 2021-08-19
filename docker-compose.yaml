@@ -1,0 +1,81 @@
+version: "3"
+
+services:
+  app:
+    build: .
+    container_name: app
+    entrypoint: dockerize -wait tcp://db:3306 -timeout 40s -template ./.docker/app/.env:.env ./.docker/entrypoint.sh
+    ports:
+      - "80:9000"
+    tty: true
+    environment:
+      - DB_HOST=db
+      - DB_DATABASE=laravel
+      - DB_USERNAME=root
+      - DB_PASSWORD=root123!@
+    volumes:
+      - .:/var/www
+    networks:
+      - app-network
+    depends_on:
+      - db
+      - redis
+
+  nginx:
+    build: .docker/nginx
+    container_name: nginx
+    restart: always
+    tty: true
+    ports:
+      - "8000:80"
+    volumes:
+      - .:/var/www
+    networks:
+      - app-network
+    depends_on:
+      - app
+    entrypoint: dockerize -template .docker/nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf nginx -g "daemon off;"
+    environment:
+      - APP_NAME=app
+      - APP_PORT=9000
+
+  db:
+    image: mysql:5.7
+    command: --innodb-use-native-aio=0
+    container_name: db
+    restart: always
+    tty: true
+    ports:
+      - "3306:3306"
+    volumes:
+      - .docker/dbdata:/var/lib/mysql
+    environment:
+      - MYSQL_DATABASE=laravel
+      - MYSQL_ROOT_PASSWORD=root123!@
+      - MYSQL_USER=root
+    networks:
+      - app-network
+
+  phpmyadmin:
+    image: phpmyadmin
+    container_name: phpmyadmin
+    environment:
+      - PMA_ARBITRARY=1
+    ports:
+      - 8001:80
+    restart: always
+    networks: 
+      - app-network
+    depends_on: 
+      - db
+
+  redis:
+    image: redis:alpine
+    expose:
+      - 6379
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
